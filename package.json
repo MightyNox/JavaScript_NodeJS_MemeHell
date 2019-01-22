@@ -1,0 +1,18 @@
+{
+  "name": "meme-hell",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon ./index"
+  },
+  "author": "Mateusz Bruzda",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^3.0.3",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "mongoose": "^5.4.6",
+    "nodemon": "^1.18.9"
+  }
+}
