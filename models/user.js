@@ -60,10 +60,10 @@ userSchema.pre('save', function(next) {
 })
   
 userSchema.methods = {
-    async comparePassword(password) {
-            let valid = await bcrypt.compare(password, this.password)
-            return (valid ? this : false)
+    authenticate (password) {
+        return bcrypt.compare(password, this.password)
+        .then((valid) => valid ? true : false)
         }
-    }
+}
     
 mongoose.model('user', userSchema)
