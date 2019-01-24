@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const URI = require('../config/database')
+const URI = require('../config/database-cfg')
 
 mongoose.connect(URI, { useNewUrlParser: true })
 mongoose.set('useCreateIndex', true)

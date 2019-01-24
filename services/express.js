@@ -1,5 +1,5 @@
 const bodyParser = require('body-parser')
-const port = require('../config/port')
+const port = require('../config/port-cfg')
 
 module.exports = app =>{
     //routes

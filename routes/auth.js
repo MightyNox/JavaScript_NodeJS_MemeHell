@@ -1,4 +1,6 @@
 const router = require('express').Router()
+const bcrypt = require('bcrypt')
+const transporter = require('../services/email-transporter')
 const User = require('mongoose').model('user')
 const requireBody = require('../middlewares/requireBody')
 const requireLogout = require('../middlewares/requireLogout')
@@ -42,10 +44,7 @@ router.post('/register',
 
         password : password,
     
-        email : {
-            name : req.body.email,
-            confirmed : "False"
-        }
+        email : email
         
     })
 
@@ -79,7 +78,9 @@ router.post('/login',
 
     req.session.user = {
         _id : user._id,
-        nickname : user.nickname
+        nickname : user.nickname,
+        email : user.email,
+        rank : user.rank
     }
 
     res.status(200)
@@ -96,6 +97,36 @@ router.post('/logout',
     res.status(200)
     res.json({message: 'Logged out'})
     return
+})
+
+router.post('/confirm-email', 
+    [requireLogin()],
+    async (req, res) =>{
+    
+    if(req.session.user.rank != 'Guest'){
+        res.status(400)
+        res.json({message: 'User\'s email is confirmed'})
+        return
+    }
+
+    let hashedId = await bcrypt.hash(req.session.user._id, 9)
+
+    await transporter.sendMail({
+        to: req.session.user.email,
+        subject: 'Email Confirmation ✅',
+        html: '<h1>Confirm Email!</h1><br><a href="/?key='+hashedId+'">Confirm</a> '
+    }, function(error, info){
+        if (error) {
+            res.status(400)
+            res.json("Cannot send email!")
+            return
+        }
+        else{
+            res.status(200)
+            res.json({message: 'Email sent'})
+            return
+        }
+    })
 })
 
 module.exports = router

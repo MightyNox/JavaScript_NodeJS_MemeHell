@@ -1,5 +1,5 @@
 const app = require('express')()
-const {name, age, key} = require('../config/cookies')
+const {name, age, key} = require('../config/cookies-cfg')
 const cookieSession = require('cookie-session')
 
 module.exports = app =>{

@@ -19,18 +19,9 @@ const userSchema = new Schema({
     },
 
     email : {
-        name : {
-            type : String,
-            required : true,
-            unique : true
-        },
-
-        confirmed : {
-            type : String,
-            require : true,
-            unique : false,
-            default : "False"
-        }
+        type : String,
+        required : true,
+        unique : true
     },
 
     gender : {
@@ -49,20 +40,16 @@ const userSchema = new Schema({
 
 })
 
-userSchema.pre('save', function(next) {
+userSchema.pre('save', async function(next) {
     if (!this.isModified('password')) 
         return next()
   
-    bcrypt.hash(this.password, 9).then((hash) => {
-      this.password = hash
-      next()
-    }).catch(next)
+    this.password = await bcrypt.hash(this.password, 9)
 })
   
 userSchema.methods = {
     authenticate (password) {
         return bcrypt.compare(password, this.password)
-        .then((valid) => valid ? true : false)
         }
 }
     
