@@ -1,8 +1,9 @@
 const router = require('express').Router()
-const bcrypt = require('bcrypt')
+const encryption = require('../services/encryption')
 const transporter = require('../services/email-transporter')
 const User = require('mongoose').model('user')
 const requireBody = require('../middlewares/requireBody')
+const requireParams = require('../middlewares/requireParams')
 const requireLogout = require('../middlewares/requireLogout')
 const requireLogin = require('../middlewares/requireLogin')
 
@@ -101,7 +102,7 @@ router.post('/logout',
 
 router.post('/confirm-email', 
     [requireLogin()],
-    async (req, res) =>{
+    (req, res) =>{
     
     if(req.session.user.rank != 'Guest'){
         res.status(400)
@@ -109,12 +110,12 @@ router.post('/confirm-email',
         return
     }
 
-    let hashedId = await bcrypt.hash(req.session.user._id, 9)
+    let encryptedId = encryption.encrypt(String(req.session.user._id))
 
-    await transporter.sendMail({
+    transporter.sendMail({
         to: req.session.user.email,
         subject: 'Email Confirmation ✅',
-        html: '<h1>Confirm Email!</h1><br><a href="/?key='+hashedId+'">Confirm</a> '
+        html: '<h1>Confirm Email!</h1><br><a href="http://localhost:3000/auth/email-confirmed?key='+encryptedId+'">Confirm</a>'
     }, function(error, info){
         if (error) {
             res.status(400)
@@ -127,6 +128,34 @@ router.post('/confirm-email',
             return
         }
     })
+})
+
+router.get('/email-confirmed', 
+    [requireParams(['key'])],
+    async (req, res) =>{
+    
+    let _id = encryption.decrypt(req.query.key)
+    
+    let user = await User.findOne({'_id' : _id})
+
+    if(!user){
+        res.status(400)
+        res.json({message: 'Wrong activation code'})
+        return
+    }
+
+    if(user.rank != 'Guest'){
+        res.status(400)
+        res.json({message: 'This email is confirmed'})
+        return
+    }
+
+    user.rank = 'Member'
+    await user.save()
+
+    res.status(200)
+    res.json({message: 'Email confirmed'})
+    return
 })
 
 module.exports = router
