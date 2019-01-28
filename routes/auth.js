@@ -52,7 +52,7 @@ router.post('/register',
     await user.save()
 
     res.status(201)
-    res.json({message: 'Signed up'})
+    res.json({message: 'User added'})
     return
 })
 
