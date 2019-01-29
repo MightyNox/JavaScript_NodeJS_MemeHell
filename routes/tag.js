@@ -31,4 +31,22 @@ router.post('/add',
 })
 
 
+router.delete('/delete', 
+    [requireLogin(), requireRank(['Admin']), requireBody(['tag'])], 
+    async (req, res) =>{
+
+    let tagName = req.body.tag
+
+    if(!await Tag.findOneAndDelete({'name' : tagName})){
+        res.status(400)
+        res.json({message: 'This tag doesn\'t exist'})
+        return
+    }
+
+    res.status(200)
+    res.json({message: 'Tag deleted'})
+    return
+})
+
+
 module.exports = router
