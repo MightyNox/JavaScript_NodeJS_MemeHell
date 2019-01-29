@@ -5,6 +5,18 @@ const requireRank = require('../middlewares/requireRank')
 const requireBody = require('../middlewares/requireBody')
 
 
+router.get('/', 
+    [requireLogin(), requireRank(['Admin'])], 
+    async (req, res) =>{
+
+    let tags = await Tag.find({})
+
+    res.status(200)
+    res.json({message: tags})
+    return
+})
+
+
 router.post('/add', 
     [requireLogin(), requireRank(['Admin']), requireBody(['tag'])], 
     async (req, res) =>{
