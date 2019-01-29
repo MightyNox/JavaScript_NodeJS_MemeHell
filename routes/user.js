@@ -11,6 +11,17 @@ router.get('/',
 
     let users = await User.find({})
 
+    users = users.map(function(user) { 
+        let userData = {
+            nickname : user.nickname,
+            email : user.email,
+            gender : user.gender,
+            rank : user.rank
+        }
+        
+        return userData 
+    });
+
     res.status(200)
     res.json({message: users})
     return
