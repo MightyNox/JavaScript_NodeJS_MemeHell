@@ -6,14 +6,14 @@ const userSchema = new Schema({
 
     nickname : {
         type : String,
-        required : false,
+        required : true,
         unique : true,
         default : null
     },
 
     password : {
         type : String,
-        required : false,
+        required : true,
         unique : false,
         default : null
     },
@@ -21,7 +21,8 @@ const userSchema = new Schema({
     email : {
         type : String,
         required : true,
-        unique : true
+        unique : true,
+        default : null
     },
 
     gender : {

@@ -5,7 +5,7 @@ module.exports = app =>{
     //routes
     app.use(bodyParser.urlencoded({extended : true}))
     app.use('/', require('../routes/home'))
-    app.use('/user', require('../routes/user'))
+    app.use('/admin/user', require('../routes/user'))
     app.use('/admin/tag', require('../routes/tag'))
     app.use('/auth', require('../routes/auth'))
 
