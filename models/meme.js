@@ -14,7 +14,6 @@ const memeSchema = new Schema({
         data : {
             type : Buffer,
             required : true,
-            unique : false,
             default : null
         },
 
@@ -28,9 +27,9 @@ const memeSchema = new Schema({
 
     tags : [{
         type : String,
-            required : true,
-            unique : false,
-            default : null
+        required : true,
+        unique : false,
+        default : null
     }],
 
     author : {
@@ -52,9 +51,8 @@ const memeSchema = new Schema({
         required : true,
         unique : false,
         default : null
-    } 
-
+    }
 })
 
-    
+
 mongoose.model('meme', memeSchema)
