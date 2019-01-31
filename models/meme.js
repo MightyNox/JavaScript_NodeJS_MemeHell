@@ -10,21 +10,6 @@ const memeSchema = new Schema({
         default : null
     },
 
-    img : {
-        data : {
-            type : Buffer,
-            required : true,
-            default : null
-        },
-
-        type : {
-            type : String,
-            required : true,
-            unique : false,
-            default : null
-        }
-    },
-
     tags : [{
         type : String,
         required : true,

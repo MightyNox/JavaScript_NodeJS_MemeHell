@@ -1,91 +1,92 @@
 const router = require('express').Router()
-const fs = require('fs')
-const Meme = require('mongoose').model('meme')
 const Tag = require('mongoose').model('tag')
+const Meme = require('mongoose').model('meme')
+const fs = require('fs')
+const path = require('../config/meme-path-cfg')
 const requireLogin = require('../middlewares/requireLogin')
 const requireRank = require('../middlewares/requireRank')
 const requireBody = require('../middlewares/requireBody')
-
-var multipart = require('connect-multiparty');
-var multipartMiddleware = multipart();
+const upload = require('../services/memeUpload')
 
 router.get('/', 
     [requireLogin(), requireRank(['Member', 'Admin']), requireBody(['id'])], 
     async (req, res) =>{
 
-    let meme = await Meme.findOne({id:req.body._id})
-
     
     res.status(200)
-    res.send(meme)
+    res.json({message: 'Meme'})
     return
 })
 
 
 router.post('/add', 
-    [requireLogin(), requireRank(['Member', 'Admin']),  multipartMiddleware], 
+    [requireLogin(), requireRank(['Member', 'Admin']), upload.single('file')], 
     async (req, res) =>{
+    try{
     
-    let title = req.body.title
-    let file = req.files.file
-    let tags = req.body.tags
-    let author = req.session.user.nickname
-    let date = new Date()
-
-    //Check body
-    {
+        let title = req.body.title
         if(!title){
-            res.status(400)
-            res.json({message: 'Incorrect body title'})
-            return
+            throw Error('Incorrect body title')
         }
 
+        let file = req.file
         if(!file){
-            res.status(400)
-            res.json({message: 'Incorrect body file'})
-            return
+            throw Error('Incorrect body file')
         }
-
-        if(!Array.isArray(tags))
+  
+        let tags = req.body.tags
         {
-            res.status(400)
-            res.json({message: 'Incorrect body tags'})
-            return
+            if(!Array.isArray(tags)){
+              
+                throw Error('Incorrect body tags')
+            }
+  
+            let dbTags = (await Tag.find({})).map(function(tag){
+                return tag.name
+            })
+  
+            if(!tags.every(r=> dbTags.indexOf(r) >= 0)){
+                throw Error('Incorrect body tags')
+            }
         }
 
-        let dbTags = (await Tag.find({})).map(function(tag){
-            return tag.name
+
+        let author = req.session.user.nickname
+        let date = new Date()
+
+        let meme = new Meme({
+
+            title : title,
+
+            tags : [tags],
+
+            author : author,
+
+            rating : 0,
+
+            date : date
         })
 
-        if(!tags.every(r=> dbTags.indexOf(r) >= 0)){
-            res.status(400)
-            res.json({message: 'Incorrect body tags'})
-            return
+        
+        meme = await meme.save()
+        fs.rename(path+author+'.tmp', path+meme._id+'.'+(req.file.originalname).split('.').pop(), 
+        (err) => {
+            if ( err ){
+                throw err
+            }
+        })
+
+    }catch(err){
+        if(req.file)
+        {
+            let author = req.session.user.nickname
+            fs.unlinkSync(path+author+'.tmp')
         }
+
+        res.status(400)
+        res.json({message: err.message})
+        return
     }
-
-    let meme = new Meme({
-        title : title,
-
-        img : {
-            data : fs.readFileSync(file.path),
-            type : file.type
-        },
-
-        tags : [tags],
-
-        author : author,
-
-        rating : 0,
-
-        date : date
-    })
-
-    await meme.save()
-
-    fs.unlink(req.files.file.path, (err) => {
-        if (err) throw err;
-    })
 
     res.status(201)
     res.json({message: 'Meme added'})
