@@ -1,8 +1,8 @@
 const multer = require('multer')
-const path = require('../config/meme-path-cfg')
+const memeCfg = require('../config/meme-cfg')
 
 const storage = multer.diskStorage({
-    destination: path,
+    destination: memeCfg.locationPath,
     filename: async function (req, file, callback) {
         callback(null,req.session.user.nickname+'.tmp')
     }

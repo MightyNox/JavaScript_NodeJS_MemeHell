@@ -2,20 +2,41 @@ const router = require('express').Router()
 const Tag = require('mongoose').model('tag')
 const Meme = require('mongoose').model('meme')
 const fs = require('fs')
-const path = require('../config/meme-path-cfg')
+const memeCfg = require('../config/meme-cfg')
 const requireLogin = require('../middlewares/requireLogin')
 const requireRank = require('../middlewares/requireRank')
 const requireBody = require('../middlewares/requireBody')
 const upload = require('../services/memeUpload')
 
 router.get('/', 
-    [requireLogin(), requireRank(['Member', 'Admin']), requireBody(['id'])], 
+    [requireLogin(), requireRank(['Member', 'Admin']), requireBody(['page'])], 
     async (req, res) =>{
 
+    try{
+        let page = parseInt(req.body.page)
+        if(isNaN(page) || page < 0){
+            throw Error('Incorrect page number')
+        }
+
+        let memes = await Meme.find({})
+            .sort({date : 'descending'})
+            .skip(page*memeCfg.pageLimit)
+            .limit(memeCfg.pageLimit)
+
+        if(memes.length === 0){
+            throw Error('Incorrect page number')
+        }
+
+        res.status(200)
+        res.json({message: memes})
+        return
+
+    }catch(err){
+        res.status(400)
+        res.json({message: err.message})
+        return
+    }
     
-    res.status(200)
-    res.json({message: 'Meme'})
-    return
 })
 
 
@@ -69,28 +90,28 @@ router.post('/add',
 
         
         meme = await meme.save()
-        fs.rename(path+author+'.tmp', path+meme._id+'.'+(req.file.originalname).split('.').pop(), 
+        fs.rename(memeCfg.locationPath+author+'.tmp', memeCfg.locationPath+meme._id+'.'+(req.file.originalname).split('.').pop(), 
         (err) => {
             if ( err ){
                 throw err
             }
         })
 
+        res.status(201)
+        res.json({message: 'Meme added'})
+        return
+
     }catch(err){
         if(req.file)
         {
             let author = req.session.user.nickname
-            fs.unlinkSync(path+author+'.tmp')
+            fs.unlinkSync(memeCfg.locationPath+author+'.tmp')
         }
 
         res.status(400)
         res.json({message: err.message})
         return
     }
-
-    res.status(201)
-    res.json({message: 'Meme added'})
-    return
 })
 
 
