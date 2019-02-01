@@ -5,7 +5,7 @@ const requireRank = require('../middlewares/requireRank')
 const requireBody = require('../middlewares/requireBody')
 
 
-router.get('/', 
+router.get('/admin/', 
     [requireLogin(), requireRank(['Admin'])], 
     async (req, res) =>{
 
@@ -35,7 +35,7 @@ router.get('/',
 })
 
 
-router.put('/setrank', 
+router.put('/admin/set-rank', 
     [requireLogin(), requireRank(['Admin']), requireBody(['id', 'rank'])], 
     async (req, res) =>{
 
@@ -59,6 +59,68 @@ router.put('/setrank',
 
         res.status(200)
         res.json({message: 'Rank updated'})
+        return
+
+    }catch(err){
+        res.status(400)
+        res.json({message: err.message})
+        return
+    }
+})
+
+
+router.put('/admin/ban', 
+    [requireLogin(), requireRank(['Admin']), requireBody(['nickname'])], 
+    async (req, res) =>{
+
+    try{
+        let nickname = req.body.nickname
+
+        let user = await User.findOne({'nickname' : nickname})
+        
+        if(!user){
+            throw Error('Incorrect user nickname')
+        }
+
+        if(user.rank === 'Outlaw'){
+            throw Error('This user is already banned')
+        }
+
+        user.rank = 'Outlaw'
+
+        await user.save()
+
+        res.status(200)
+        res.json({message: 'User banned'})
+        return
+
+    }catch(err){
+        res.status(400)
+        res.json({message: err.message})
+        return
+    }
+})
+
+
+router.get('/update-cookies', 
+    [requireLogin()], 
+    async (req, res) =>{
+
+    try{
+    
+        let id = req.body._id
+        let user = await User.findOne({'id' : id})
+        
+        if(!user){
+            throw Error('Incorrect user id')
+        }
+
+        req.session.user = {
+            rank : user.rank 
+        }
+
+        res.status(200)
+        res.json({message: 'Cookies updated'})
         return
 
     }catch(err){

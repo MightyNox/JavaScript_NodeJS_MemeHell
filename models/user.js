@@ -25,13 +25,6 @@ const userSchema = new Schema({
         default : null
     },
 
-    gender : {
-        type : String,
-        required : false,
-        unique : false,
-        default : null
-    },
-
     rank : {
         type : String,
         required : true,
