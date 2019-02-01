@@ -40,6 +40,58 @@ router.get('/',
 })
 
 
+router.get('/tag', 
+    [requireLogin(), requireRank(['Member', 'Admin']), requireBody(['tags', 'page'])], 
+    async (req, res) =>{
+
+    try{
+        let page = parseInt(req.body.page)
+        if(isNaN(page) || page < 0){
+            throw Error('Incorrect page number')
+        }
+
+        let tags = req.body.tags
+        {
+            if(!Array.isArray(tags)){
+              
+                throw Error('Incorrect body tags')
+            }
+  
+            let dbTags = (await Tag.find({})).map(function(tag){
+                return tag.name
+            })
+  
+            if(!tags.every(r=> dbTags.indexOf(r) >= 0)){
+                throw Error('Incorrect body tags')
+            }
+        }
+
+        let memes = await Meme
+            .find({})
+            .where('tags')
+            .all(tags)
+            .sort({date : 'descending'})
+            .skip(page*memeCfg.pageLimit)
+            .limit(memeCfg.pageLimit)
+
+
+        if(memes.length === 0){
+            throw Error('This page is empty')
+        }
+
+        res.status(200)
+        res.json({message: memes})
+        return
+
+    }catch(err){
+        res.status(400)
+        res.json({message: err.message})
+        return
+    }
+    
+})
+
+
 router.post('/add', 
     [requireLogin(), requireRank(['Member', 'Admin']), upload.single('file')], 
     async (req, res) =>{
@@ -79,7 +131,7 @@ router.post('/add',
 
             title : title,
 
-            tags : [tags],
+            tags : tags,
 
             author : author,
 
