@@ -7,13 +7,8 @@ const requireParams = require('../middlewares/requireParams')
 const requireLogout = require('../middlewares/requireLogout')
 const requireLogin = require('../middlewares/requireLogin')
 const requireRank = require('../middlewares/requireRank')
-const passwdLen = require('../config/auth-cfg')
+const {nicknameLen, emailLen, passwdLen} = require('../config/auth-cfg')
 
-router.get('/', 
-    [requireLogout()],
-    (req, res) =>{
-    res.send('Meme Hell Authpage')
-})
 
 router.post('/register', 
     [requireLogout(), requireBody(['nickname', 'email', 'password'])], 
@@ -24,16 +19,24 @@ router.post('/register',
         let email = req.body.email
         let password = req.body.password
 
+        if(nickname.length < nicknameLen){
+            throw Error('Nickname is too short!')
+        }
+
+        if(email.length < emailLen){
+            throw Error('Email is too short!')
+        }
+
         if(password.length < passwdLen){
-            throw Error('Password is too short')
+            throw Error('Password is too short!')
         }
 
         if(await User.findOne({'nickname' : nickname})){
-           throw Error('This nickname is occupied')
+           throw Error('This nickname is taken!')
         }
 
-        if(await User.findOne({'email.name' : email})){
-            throw Error('This email is occupied')
+        if(await User.findOne({'email' : email})){
+            throw Error('This email is taken!')
         }
 
         let user =  new User({
