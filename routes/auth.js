@@ -7,7 +7,7 @@ const requireParams = require('../middlewares/requireParams')
 const requireLogout = require('../middlewares/requireLogout')
 const requireLogin = require('../middlewares/requireLogin')
 const requireRank = require('../middlewares/requireRank')
-const {nicknameLen, emailLen, passwdLen} = require('../config/auth-cfg')
+const authCfg = require('../config/auth-cfg')
 
 
 router.post('/register', 
@@ -15,20 +15,20 @@ router.post('/register',
     async (req, res) =>{
 
     try{
-        let nickname = req.body.nickname
-        let email = req.body.email
-        let password = req.body.password
+        const nickname = req.body.nickname
+        const email = req.body.email
+        const password = req.body.password
 
-        if(nickname.length < nicknameLen){
-            throw Error('Nickname is too short!')
+        if(!authCfg.nicknamePattern.exec(nickname)){
+            throw Error('Incorrect nickname!')
         }
 
-        if(email.length < emailLen){
-            throw Error('Email is too short!')
+        if(!authCfg.emailPattern.exec(email)){
+            throw Error('Incorrect email!')
         }
 
-        if(password.length < passwdLen){
-            throw Error('Password is too short!')
+        if(!authCfg.passwdPattern.exec(password)){
+            throw Error('Incorrect password!')
         }
 
         if(await User.findOne({'nickname' : nickname})){
@@ -39,7 +39,7 @@ router.post('/register',
             throw Error('This email is taken!')
         }
 
-        let user =  new User({
+        const user =  new User({
 
             nickname : nickname,
 
@@ -164,6 +164,56 @@ router.get('/email-confirmed',
 
         res.status(200)
         res.json({message: 'Email confirmed'})
+        return
+
+    }catch(err){
+        res.status(400)
+        res.json({message: err.message})
+        return
+    }
+})
+
+
+router.post('/check-email', 
+    [requireBody(['email'])], 
+    async (req, res) =>{
+
+    try{
+    
+        let email = req.body.email
+        let user = await User.findOne({'email' : email})
+        
+        if(user){
+            throw Error('This email is taken!')
+        }
+
+        res.status(200)
+        res.json({message: 'This email is available!'})
+        return
+
+    }catch(err){
+        res.status(400)
+        res.json({message: err.message})
+        return
+    }
+})
+
+
+router.post('/check-nickname', 
+    [requireBody(['nickname'])], 
+    async (req, res) =>{
+
+    try{
+    
+        let nickname = req.body.nickname
+        let user = await User.findOne({'nickname' : nickname})
+        
+        if(user){
+            throw Error('This nickname is taken!')
+        }
+
+        res.status(200)
+        res.json({message: 'This nickname is available!'})
         return
 
     }catch(err){
