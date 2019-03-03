@@ -4,14 +4,13 @@ const transporter = require('../services/email-transporter')
 const User = require('mongoose').model('user')
 const requireBody = require('../middlewares/requireBody')
 const requireParams = require('../middlewares/requireParams')
-const requireLogout = require('../middlewares/requireLogout')
 const requireLogin = require('../middlewares/requireLogin')
 const requireRank = require('../middlewares/requireRank')
 const authCfg = require('../config/auth-cfg')
 
 
 router.post('/register', 
-    [requireLogout(), requireBody(['nickname', 'email', 'password'])], 
+    [requireBody(['nickname', 'email', 'password'])], 
     async (req, res) =>{
 
     try{
@@ -63,14 +62,17 @@ router.post('/register',
 })
 
 router.post('/login', 
-    [requireLogout(), requireBody(['nickname', 'password'])], 
+    [requireBody(['login', 'password'])], 
     async (req, res) =>{
 
     try{
-        let nickname = req.body.nickname
+        let login = req.body.login
         let password = req.body.password
     
-        let user = await User.findOne({'nickname' : nickname})
+        let user = await User.findOne({'nickname' : login})
+        if(!user){
+            user = await User.findOne({'email' : login})
+        }
     
         if(!user){
             throw Error('This user doesn\'t exist')
@@ -80,7 +82,7 @@ router.post('/login',
            throw Error('Invalid password')
         }
     
-        req.session.user = {
+        userData = {
             _id : user._id,
             nickname : user.nickname,
             email : user.email,
@@ -88,7 +90,10 @@ router.post('/login',
         }
     
         res.status(200)
-        res.json({message: 'Signed in'})
+        res.json({
+            message: 'Signed in',
+            data : userData
+        })
         return
 
     }catch(err){
