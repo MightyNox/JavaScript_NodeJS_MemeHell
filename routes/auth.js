@@ -92,7 +92,9 @@ router.post('/login',
         res.status(200)
         res.json({
             message: 'Signed in',
-            data : userData
+            data : {
+                user : userData
+            }
         })
         return
 
@@ -102,17 +104,6 @@ router.post('/login',
         return
     }
     
-})
-
-router.post('/logout', 
-    [requireLogin()],
-    (req, res) =>{
-    
-    req.session.user = null
-
-    res.status(200)
-    res.json({message: 'Logged out'})
-    return
 })
 
 router.post('/confirm-email', 
