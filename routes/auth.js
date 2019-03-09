@@ -19,23 +19,23 @@ router.post('/register',
         const password = req.body.password
 
         if(!authCfg.nicknamePattern.exec(nickname)){
-            throw Error('Incorrect nickname!')
+            throw Error(["Incorrect nickname!"])
         }
 
         if(!authCfg.emailPattern.exec(email)){
-            throw Error('Incorrect email!')
+            throw Error(["Incorrect email!"])
         }
 
         if(!authCfg.passwdPattern.exec(password)){
-            throw Error('Incorrect password!')
+            throw Error(["Incorrect password!"])
         }
 
         if(await User.findOne({'nickname' : nickname})){
-           throw Error('This nickname is taken!')
+            throw Error(["This nickname is taken!"])
         }
 
         if(await User.findOne({'email' : email})){
-            throw Error('This email is taken!')
+            throw Error(["This email is taken!"])
         }
 
         const user =  new User({
@@ -47,16 +47,25 @@ router.post('/register',
             email : email
             
         })
-
+        
         await user.save()
 
         res.status(201)
-        res.json({message: 'User added'})
-        return
+        res.json("User added!")
 
     }catch(err){
-        res.status(400)
-        res.json({message: err.message})
+        if(Array.isArray(err.message)){
+            res.status(400)
+            res.json({
+                message : err.message[0]
+            })
+        }else{
+            res.status(500)
+            res.json({
+                message : err.message
+            })
+        }
+
         return
     }
 })
@@ -75,11 +84,11 @@ router.post('/login',
         }
     
         if(!user){
-            throw Error('This user doesn\'t exist')
+            throw Error(['This user doesn\'t exist'])
         }
     
         if(! await user.authenticate(password)){
-           throw Error('Invalid password')
+           throw Error(['Invalid password'])
         }
     
         userData = {
@@ -96,12 +105,19 @@ router.post('/login',
                 user : userData
             }
         })
-        return
 
     }catch(err){
-        res.status(400)
-        res.json({message: err.message})
-        return
+        if(Array.isArray(err.message)){
+            res.status(400)
+            res.json({
+                message : err.message[0]
+            })
+        }else{
+            res.status(500)
+            res.json({
+                message : err.message
+            })
+        }
     }
     
 })
