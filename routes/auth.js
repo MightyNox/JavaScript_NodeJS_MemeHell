@@ -7,6 +7,7 @@ const requireParams = require('../middlewares/requireParams')
 const requireLogin = require('../middlewares/requireLogin')
 const requireRank = require('../middlewares/requireRank')
 const authCfg = require('../config/auth-cfg')
+const ClientError = require('../errors/ClientError')
 
 
 router.post('/register', 
@@ -19,23 +20,23 @@ router.post('/register',
         const password = req.body.password
 
         if(!authCfg.nicknamePattern.exec(nickname)){
-            throw Error(["Incorrect nickname!"])
+            throw new ClientError("Incorrect nickname!")
         }
 
         if(!authCfg.emailPattern.exec(email)){
-            throw Error(["Incorrect email!"])
+            throw new ClientError("Incorrect email!")
         }
 
         if(!authCfg.passwdPattern.exec(password)){
-            throw Error(["Incorrect password!"])
+            throw new ClientError("Incorrect password!")
         }
 
         if(await User.findOne({'nickname' : nickname})){
-            throw Error(["This nickname is taken!"])
+            throw new ClientError("This nickname is taken!")
         }
 
         if(await User.findOne({'email' : email})){
-            throw Error(["This email is taken!"])
+            throw new ClientError("This email is taken!")
         }
 
         const user =  new User({
@@ -54,15 +55,15 @@ router.post('/register',
         res.json("User added!")
 
     }catch(err){
-        if(Array.isArray(err.message)){
+        if (error instanceof ClientError) {
             res.status(400)
             res.json({
-                message : err.message[0]
+                message : error.message
             })
         }else{
             res.status(500)
             res.json({
-                message : err.message
+                message : error.message
             })
         }
 
@@ -84,11 +85,11 @@ router.post('/login',
         }
     
         if(!user){
-            throw Error(['This user doesn\'t exist'])
+            throw new ClientError('This user doesn\'t exist')
         }
     
         if(! await user.authenticate(password)){
-           throw Error(['Invalid password'])
+           throw new ClientError('Invalid password')
         }
     
         userData = {
@@ -106,20 +107,20 @@ router.post('/login',
             }
         })
 
-    }catch(err){
-        if(Array.isArray(err.message)){
+    }
+    catch(error){
+        if (error instanceof ClientError) {
             res.status(400)
             res.json({
-                message : err.message[0]
+                message : error.message
             })
         }else{
             res.status(500)
             res.json({
-                message : err.message
+                message : error.message
             })
         }
     }
-    
 })
 
 router.post('/confirm-email', 
