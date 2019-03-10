@@ -211,7 +211,7 @@ router.post('/check-email',
         res.json({message: 'This email is available!'})
         return
 
-    }catch(err){
+    }catch(error){
         if (error instanceof ClientError) {
             res.status(400)
             res.json({
@@ -244,7 +244,7 @@ router.post('/check-nickname',
         res.json({message: 'This nickname is available!'})
         return
 
-    }catch(err){
+    }catch(error){
         if (error instanceof ClientError) {
             res.status(400)
             res.json({
