@@ -5,11 +5,11 @@ const fs = require('fs')
 const multer = require('multer')
 const memeCfg = require('../config/meme-cfg')
 const requireRank = require('../middlewares/requireRank')
-const requireBody = require('../middlewares/requireBody')
 const upload = require('../services/memeUpload')
+const ClientError = require('../errors/ClientError')
 
 router.get('/', 
-    [requireRank(['Member', 'Admin']), requireBody(['page'])], 
+    [requireRank(['Member', 'Admin'])], 
     async (req, res) =>{
 
     try{
@@ -41,7 +41,7 @@ router.get('/',
 
 
 router.get('/tag', 
-    [requireRank(['Member', 'Admin']), requireBody(['tags', 'page'])], 
+    [requireRank(['Member', 'Admin'])], 
     async (req, res) =>{
 
     try{
@@ -92,9 +92,7 @@ router.get('/tag',
 })
 
 
-router.post('/add', 
-    [requireRank(['Member', 'Admin'])], 
-    async (req, res) =>{
+router.post('/add', async (req, res) =>{
         upload(req, res, async function (err) {
         try{
             if (err instanceof multer.MulterError) {
@@ -102,49 +100,27 @@ router.post('/add',
             } else if (err) {
                 throw err
             }
-            
-            let title = req.body.title
-            let tags = req.body.tags
-            let file = req.files.file[0]
-            let author = req.session.user.nickname
-            let date = new Date()
 
-            let meme = new Meme({
-
-                title : title,
-
-                tags : tags,
-
-                author : author,
-
-                rating : 0,
-
-                date : date
-            })
-
-            meme = await meme.save()
-            
-            fs.rename(memeCfg.locationPath+author+'.tmp', memeCfg.locationPath+meme._id+'.'+(file.originalname).split('.').pop(), 
-            (err) => {
-                if ( err ){
-                    throw err
-                }
-            })
+            if(!req.files.file){
+                throw new ClientError("None file uploaded!")
+            }
 
             res.status(201)
             res.json({message: 'Meme added'})
-            return
 
-        }catch(err){
-            if(req.file)
-            {
-                let author = req.session.user.nickname
-                fs.unlinkSync(memeCfg.locationPath+author+'.tmp')
+        }catch(error){
+            
+            if (error instanceof ClientError) {
+                res.status(400)
+                res.json({
+                    message : error.message
+                })
+            }else{
+                res.status(500)
+                res.json({
+                    message : error.message
+                })
             }
-
-            res.status(400)
-            res.json({message: err.message})
-            return
         }
     })
 })

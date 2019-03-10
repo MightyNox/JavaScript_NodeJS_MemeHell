@@ -1,35 +1,77 @@
 const multer = require('multer')
+const fs = require('fs')
+const jwt = require('jsonwebtoken')
 const memeCfg = require('../config/meme-cfg')
+const jwtCfg = require('../config/jwt-cfg')
 const Tag = require('mongoose').model('tag')
+const ClientError = require('../errors/ClientError')
+const Meme = require('mongoose').model('meme')
 
+let filename
 
 const upload = multer({ 
     storage:  multer.diskStorage({
         destination: memeCfg.locationPath,
         filename: async function (req, file, callback) {
-            callback(null,req.session.user.nickname+'.tmp')
+            callback(null, filename+"."+file.mimetype.split("/").pop())
         }
     }),
     fileFilter : async (req, file, callback) => {
-        if(!req.body.title){
-            return callback(new Error('Body lack of title'))
+             
+        if (memeCfg.extensions.indexOf(file.originalname.split('.').pop()) === -1) {
+            return callback(new ClientError('Wrong file extension!'))
         }
 
-        if(!Array.isArray(req.body.tags)){
-            return callback(new Error('Body lack of tags array'))
+        if(!req.body.token){
+            throw new ClientError("Body lack of token!")
+        }
+
+        const title = req.body.title
+        if(!title){
+            throw new ClientError("Body lack of title!")
         }
     
-        let dbTags = (await Tag.find({})).map(function(tag){
+        const author = jwt.verify(req.body.token, jwtCfg.secret, (error, decoded)=>{
+            if(error){
+                throw new ClientError("Authorization failed")
+            }
+
+            return decoded
+        }).nickname
+
+        const dbTags = (await Tag.find({})).map(function(tag){
             return tag.name
         })
     
-        if(!req.body.tags.every(r=> dbTags.indexOf(r) >= 0)){
-            return callback(new Error('Incorrect body tags'))
+        let tags = req.body.tags
+        if(tags)
+        {
+            const tags = tags.split(",")
+            if(!tags.every(r=> dbTags.indexOf(r) >= 0)){
+                return callback(new ClientError('Incorrect body tags'))
+            }
+        }else{
+            tags = null
         }
-                
-        if (memeCfg.extensions.indexOf(file.originalname.split('.').pop()) === -1) {
-            return callback(new Error('Wrong file extension'))
-        }
+        
+        const date = new Date()
+
+        let meme = new Meme({
+
+            title : title,
+
+            tags : tags,
+
+            author : author,
+
+            rating : 0,
+
+            date : date
+        })
+
+        meme = await meme.save()
+
+        filename = meme._id
         
         callback(null, true)
     }

@@ -108,10 +108,7 @@ router.post('/login',
         res.status(200)
         res.json({
             message: 'Signed in',
-            data : { 
-                auth: true, 
-                token: token 
-            }
+            token: token 
         })
 
     }
