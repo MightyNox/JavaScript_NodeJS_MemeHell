@@ -1,12 +1,11 @@
 const router = require('express').Router()
 const User = require('mongoose').model('user')
-const requireLogin = require('../middlewares/requireLogin')
 const requireRank = require('../middlewares/requireRank')
 const requireBody = require('../middlewares/requireBody')
 
 
 router.get('/admin/', 
-    [requireLogin(), requireRank(['Admin'])], 
+    [requireRank(['Admin'])], 
     async (req, res) =>{
 
     try{
@@ -36,7 +35,7 @@ router.get('/admin/',
 
 
 router.put('/admin/set-rank', 
-    [requireLogin(), requireRank(['Admin']), requireBody(['id', 'rank'])], 
+    [requireRank(['Admin']), requireBody(['id', 'rank'])], 
     async (req, res) =>{
 
     try{
@@ -70,7 +69,7 @@ router.put('/admin/set-rank',
 
 
 router.put('/admin/ban', 
-    [requireLogin(), requireRank(['Admin']), requireBody(['nickname'])], 
+    [requireRank(['Admin']), requireBody(['nickname'])], 
     async (req, res) =>{
 
     try{
@@ -92,35 +91,6 @@ router.put('/admin/ban',
 
         res.status(200)
         res.json({message: 'User banned'})
-        return
-
-    }catch(err){
-        res.status(400)
-        res.json({message: err.message})
-        return
-    }
-})
-
-
-router.get('/update-cookies', 
-    [requireLogin()], 
-    async (req, res) =>{
-
-    try{
-    
-        let id = req.body._id
-        let user = await User.findOne({'id' : id})
-        
-        if(!user){
-            throw Error('Incorrect user id')
-        }
-
-        req.session.user = {
-            rank : user.rank 
-        }
-
-        res.status(200)
-        res.json({message: 'Cookies updated'})
         return
 
     }catch(err){

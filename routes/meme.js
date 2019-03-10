@@ -4,13 +4,12 @@ const Meme = require('mongoose').model('meme')
 const fs = require('fs')
 const multer = require('multer')
 const memeCfg = require('../config/meme-cfg')
-const requireLogin = require('../middlewares/requireLogin')
 const requireRank = require('../middlewares/requireRank')
 const requireBody = require('../middlewares/requireBody')
 const upload = require('../services/memeUpload')
 
 router.get('/', 
-    [requireLogin(), requireRank(['Member', 'Admin']), requireBody(['page'])], 
+    [requireRank(['Member', 'Admin']), requireBody(['page'])], 
     async (req, res) =>{
 
     try{
@@ -42,7 +41,7 @@ router.get('/',
 
 
 router.get('/tag', 
-    [requireLogin(), requireRank(['Member', 'Admin']), requireBody(['tags', 'page'])], 
+    [requireRank(['Member', 'Admin']), requireBody(['tags', 'page'])], 
     async (req, res) =>{
 
     try{
@@ -94,7 +93,7 @@ router.get('/tag',
 
 
 router.post('/add', 
-    [requireLogin(), requireRank(['Member', 'Admin'])], 
+    [requireRank(['Member', 'Admin'])], 
     async (req, res) =>{
         upload(req, res, async function (err) {
         try{

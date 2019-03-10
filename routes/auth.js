@@ -1,12 +1,13 @@
 const router = require('express').Router()
 const encryption = require('../services/encryption')
 const transporter = require('../services/email-transporter')
+const jwt = require('jsonwebtoken')
 const User = require('mongoose').model('user')
 const requireBody = require('../middlewares/requireBody')
 const requireParams = require('../middlewares/requireParams')
-const requireLogin = require('../middlewares/requireLogin')
 const requireRank = require('../middlewares/requireRank')
 const authCfg = require('../config/auth-cfg')
+const jwtCfg = require('../config/jwt-cfg')
 const ClientError = require('../errors/ClientError')
 
 
@@ -92,18 +93,24 @@ router.post('/login',
            throw new ClientError('Invalid password')
         }
     
-        userData = {
-            _id : user._id,
-            nickname : user.nickname,
-            email : user.email,
-            rank : user.rank
-        }
+        const token = jwt.sign(
+            { 
+                id : user._id,
+                nickname : user.nickname,
+                email : user.email,
+                rank : user.rank
+            }, 
+            jwtCfg.secret, 
+            {
+            expiresIn : jwtCfg.validity
+        })
     
         res.status(200)
         res.json({
             message: 'Signed in',
-            data : {
-                user : userData
+            data : { 
+                auth: true, 
+                token: token 
             }
         })
 
@@ -124,7 +131,7 @@ router.post('/login',
 })
 
 router.post('/confirm-email', 
-    [requireLogin(), requireRank(['Guest'])],
+    [requireRank(['Guest'])],
     (req, res) =>{
 
     try{

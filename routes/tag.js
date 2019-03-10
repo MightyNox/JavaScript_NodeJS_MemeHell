@@ -1,12 +1,11 @@
 const router = require('express').Router()
 const Tag = require('mongoose').model('tag')
-const requireLogin = require('../middlewares/requireLogin')
 const requireRank = require('../middlewares/requireRank')
 const requireBody = require('../middlewares/requireBody')
 
 
 router.get('/', 
-    [requireLogin(), requireRank(['Admin'])], 
+    [requireRank(['Admin'])], 
     async (req, res) =>{
 
     try{
@@ -26,7 +25,7 @@ router.get('/',
 
 
 router.post('/add', 
-    [requireLogin(), requireRank(['Admin']), requireBody(['tag'])], 
+    [requireRank(['Admin']), requireBody(['tag'])], 
     async (req, res) =>{
 
     try{
@@ -58,7 +57,7 @@ router.post('/add',
 
 
 router.delete('/delete', 
-    [requireLogin(), requireRank(['Admin']), requireBody(['tag'])], 
+    [requireRank(['Admin']), requireBody(['tag'])], 
     async (req, res) =>{
 
     try{
