@@ -204,7 +204,7 @@ router.post('/check-email',
         let user = await User.findOne({'email' : email})
         
         if(user){
-            throw Error('This email is taken!')
+            throw new ClientError('This email is taken!')
         }
 
         res.status(200)
@@ -212,9 +212,17 @@ router.post('/check-email',
         return
 
     }catch(err){
-        res.status(400)
-        res.json({message: err.message})
-        return
+        if (error instanceof ClientError) {
+            res.status(400)
+            res.json({
+                message : error.message
+            })
+        }else{
+            res.status(500)
+            res.json({
+                message : error.message
+            })
+        }
     }
 })
 
@@ -229,7 +237,7 @@ router.post('/check-nickname',
         let user = await User.findOne({'nickname' : nickname})
         
         if(user){
-            throw Error('This nickname is taken!')
+            throw new ClientError('This nickname is taken!')
         }
 
         res.status(200)
@@ -237,9 +245,17 @@ router.post('/check-nickname',
         return
 
     }catch(err){
-        res.status(400)
-        res.json({message: err.message})
-        return
+        if (error instanceof ClientError) {
+            res.status(400)
+            res.json({
+                message : error.message
+            })
+        }else{
+            res.status(500)
+            res.json({
+                message : error.message
+            })
+        }
     }
 })
 
