@@ -4,15 +4,13 @@ const requireRank = require('../middlewares/requireRank')
 const requireBody = require('../middlewares/requireBody')
 
 
-router.get('/', 
-    [requireRank(['Admin'])], 
-    async (req, res) =>{
+router.get('/', async (req, res) =>{
 
     try{
         let tags = await Tag.find({})
 
         res.status(200)
-        res.json({message: tags})
+        res.json({tags : tags})
         return
 
     }catch(err){
@@ -25,7 +23,7 @@ router.get('/',
 
 
 router.post('/add', 
-    [requireRank(['Admin']), requireBody(['tag'])], 
+    [requireBody(['tag'])], 
     async (req, res) =>{
 
     try{

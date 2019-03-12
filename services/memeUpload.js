@@ -46,12 +46,12 @@ const upload = multer({
         let tags = req.body.tags
         if(tags)
         {
-            const tags = tags.split(",")
+            tags = tags.split(",")
             if(!tags.every(r=> dbTags.indexOf(r) >= 0)){
                 return callback(new ClientError('Incorrect body tags'))
             }
         }else{
-            tags = null
+            throw new ClientError("Body lack of tags!")
         }
         
         const date = new Date()
