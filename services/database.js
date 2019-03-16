@@ -1,6 +1,11 @@
 const mongoose = require('mongoose')
 const URI = require('../config/database-cfg')
 
+require('../models/user')
+require('../models/meme')
+require('../models/tag')
+require('../models/comment')
+
 mongoose.connect(URI, { useNewUrlParser: true })
 mongoose.set('useCreateIndex', true)
 mongoose.set('useFindAndModify', false)

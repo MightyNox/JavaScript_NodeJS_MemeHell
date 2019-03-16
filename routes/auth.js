@@ -3,6 +3,7 @@ const encryption = require('../services/encryption')
 const transporter = require('../services/email-transporter')
 const jwt = require('jsonwebtoken')
 const User = require('mongoose').model('user')
+
 const requireBody = require('../middlewares/requireBody')
 const requireParams = require('../middlewares/requireParams')
 const requireRank = require('../middlewares/requireRank')

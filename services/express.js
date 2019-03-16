@@ -15,6 +15,7 @@ module.exports = app =>{
     app.use('/tag', require('../routes/tag'))
     app.use('/auth', require('../routes/auth'))
     app.use('/meme', require('../routes/meme'))
+    app.use('/comment', require('../routes/comment'))
 
     //port
     app.listen(port)
