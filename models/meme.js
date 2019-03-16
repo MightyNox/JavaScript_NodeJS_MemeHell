@@ -3,6 +3,13 @@ const {Schema} = mongoose
 
 const memeSchema = new Schema({
 
+    type : {
+        type : String,
+        required : true,
+        unique : false,
+        default : null
+    },
+
     title : {
         type : String,
         required : true,
@@ -25,10 +32,19 @@ const memeSchema = new Schema({
     },
 
     rating : {
-        type : Number,
-        required : true,
-        unique : false,
-        default : 0
+        value : {
+            type : Number,
+            required : true,
+            unique : false,
+            default : 0
+        },
+
+        voted : [{
+            type : String,
+            required : true,
+            unique : false,
+            default : null
+        }]
     },
 
     date : {

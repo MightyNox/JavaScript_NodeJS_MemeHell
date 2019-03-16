@@ -1,5 +1,4 @@
 const multer = require('multer')
-const fs = require('fs')
 const jwt = require('jsonwebtoken')
 const memeCfg = require('../config/meme-cfg')
 const jwtCfg = require('../config/jwt-cfg')
@@ -8,18 +7,21 @@ const ClientError = require('../errors/ClientError')
 const Meme = require('mongoose').model('meme')
 
 let filename
+let fileType
 
 const upload = multer({ 
     storage:  multer.diskStorage({
         destination: memeCfg.locationPath,
         filename: async function (req, file, callback) {
-            callback(null, filename+"."+file.mimetype.split("/").pop())
+            callback(null, filename+"."+ fileType)
         }
     }),
     fileFilter : async (req, file, callback) => {
              
         if (memeCfg.extensions.indexOf(file.originalname.split('.').pop()) === -1) {
             return callback(new ClientError('Wrong file extension!'))
+        }else{
+            fileType = file.mimetype.split("/").pop()
         }
 
         if(!req.body.token){
@@ -58,13 +60,13 @@ const upload = multer({
 
         let meme = new Meme({
 
+            type : fileType,
+
             title : title,
 
             tags : tags,
 
             author : author,
-
-            rating : 0,
 
             date : date
         })

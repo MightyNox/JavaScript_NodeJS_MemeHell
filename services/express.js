@@ -1,3 +1,4 @@
+const express = require('express')
 const bodyParser = require('body-parser')
 const port = require('../config/port-cfg')
 
@@ -5,6 +6,9 @@ module.exports = app =>{
 
     app.use(bodyParser.urlencoded({extended : true}))
     app.use(bodyParser.json())
+
+    //static files
+    app.use(express.static('public'))
 
     //routes
     app.use('/user', require('../routes/user'))
