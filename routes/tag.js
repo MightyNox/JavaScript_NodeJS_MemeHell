@@ -7,7 +7,11 @@ const requireBody = require('../middlewares/requireBody')
 router.get('/', async (req, res) =>{
 
     try{
-        let tags = await Tag.find({})
+        const tags = await Tag.find({})
+
+        tags.sort(function(a, b){
+            return a.name.localeCompare(b.name)
+        })
 
         res.status(200)
         res.json({tags : tags})
