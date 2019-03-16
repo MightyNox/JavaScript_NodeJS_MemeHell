@@ -149,6 +149,27 @@ router.post('/rate',
 })
 
 
+router.get('/count', async (req, res) =>{
+    try{
+
+        const count = await Meme.countDocuments({})
+
+        res.status(200)
+        res.json({
+            message: "Meme count returned!",
+            count : count
+        })
+
+    }catch(error){
+        res.status(500)
+        res.json({
+            message : error.message
+        })
+    }
+    
+})
+
+
 router.get('/tag', 
     [requireRank(['Member', 'Admin'])], 
     async (req, res) =>{
