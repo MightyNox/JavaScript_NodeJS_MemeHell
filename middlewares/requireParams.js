@@ -1,4 +1,4 @@
-function requireBody(arr) {
+function requireParams(arr) {
     return function(req, res, next) {
         for(let i =0; i < arr.length; i++) {
             if(!req.query.hasOwnProperty(arr[i])){
@@ -11,4 +11,4 @@ function requireBody(arr) {
     }
 }
 
-module.exports = requireBody
+module.exports = requireParams

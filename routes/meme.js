@@ -5,8 +5,6 @@ const jwt = require('jsonwebtoken')
 const multer = require('multer')
 
 const jwtCfg = require('../config/jwt-cfg')
-const memeCfg = require('../config/meme-cfg')
-const requireRank = require('../middlewares/requireRank')
 const requireBody = require('../middlewares/requireBody')
 const requireParams = require('../middlewares/requireParams')
 const upload = require('../services/memeUpload')
@@ -30,6 +28,10 @@ router.get('/',
             .sort({date : 'descending'})
             .skip(page*limit)
             .limit(limit)
+
+        if(page === 0 && memes.length === 0){
+            throw new ClientError('There are no memes! 👿')
+        }
 
         if(memes.length === 0){
             throw new ClientError('There are no more memes! 👿')
@@ -175,20 +177,22 @@ router.get('/count', async (req, res) =>{
 
 
 router.get('/tag', 
-    [requireParams(['tags', 'page'])], 
+    [requireParams(['tags', 'page', 'limit'])], 
     async (req, res) =>{
 
+    const page = parseInt(req.query.page)
+    const limit = parseInt(req.query.limit)
+    const tags = req.query.tags
+
     try{
-        let page = parseInt(req.body.page)
         if(isNaN(page) || page < 0){
-            throw Error('Incorrect page number')
+            throw new ClientError('Incorrect page number')
         }
 
-        let tags = req.body.tags
         {
             if(!Array.isArray(tags)){
               
-                throw Error('Incorrect body tags')
+                throw new ClientError('Incorrect tags!')
             }
   
             let dbTags = (await Tag.find({})).map((tag) => {
@@ -196,31 +200,44 @@ router.get('/tag',
             })
   
             if(!tags.every(r=> dbTags.indexOf(r) >= 0)){
-                throw Error('Incorrect body tags')
+                throw new ClientError('Incorrect tags!')
             }
         }
 
-        let memes = await Meme
+        const memes = await Meme
             .find({})
             .where('tags')
             .all(tags)
             .sort({date : 'descending'})
-            .skip(page*memeCfg.pageLimit)
-            .limit(memeCfg.pageLimit)
+            .skip(page*limit)
+            .limit(limit)
 
+        if(page === 0 && memes.length === 0){
+            throw new ClientError('There are no memes with this tags! 👿')
+        }
 
         if(memes.length === 0){
-            throw Error('This page is empty')
+            throw new ClientError('There are no more memes with this tags! 👿')
         }
 
         res.status(200)
-        res.json({message: memes})
-        return
+        res.json({
+            message: "Memes successfully returned!",
+            memes : memes
+        })
 
-    }catch(err){
-        res.status(400)
-        res.json({message: err.message})
-        return
+    }catch(error){
+        if (error instanceof ClientError) {
+            res.status(400)
+            res.json({
+                message : error.message
+            })
+        }else{
+            res.status(500)
+            res.json({
+                message : error.message
+            })
+        }
     }
     
 })
