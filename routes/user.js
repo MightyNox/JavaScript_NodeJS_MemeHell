@@ -26,9 +26,9 @@ router.get('/admin/',
         res.json({message: users})
         return
     
-    }catch(err){
+    }catch(error){
         res.status(400)
-        res.json({message: err.message})
+        res.json({message: error.message})
         return
     }
 })
@@ -60,9 +60,9 @@ router.put('/admin/set-rank',
         res.json({message: 'Rank updated'})
         return
 
-    }catch(err){
+    }catch(error){
         res.status(400)
-        res.json({message: err.message})
+        res.json({message: error.message})
         return
     }
 })
@@ -93,9 +93,9 @@ router.put('/admin/ban',
         res.json({message: 'User banned'})
         return
 
-    }catch(err){
+    }catch(error){
         res.status(400)
-        res.json({message: err.message})
+        res.json({message: error.message})
         return
     }
 })

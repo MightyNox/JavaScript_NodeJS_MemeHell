@@ -244,12 +244,12 @@ router.get('/tag',
 
 
 router.post('/add', async (req, res) =>{
-        upload(req, res, async function (err) {
+        upload(req, res, async function (error) {
         try{
-            if (err instanceof multer.MulterError) {
-                throw err
-            } else if (err) {
-                throw err
+            if (error instanceof multer.MulterError) {
+                throw error
+            } else if (error) {
+                throw error
             }
 
             if(!req.files.file){

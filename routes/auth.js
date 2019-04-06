@@ -55,7 +55,7 @@ router.post('/register',
         res.status(201)
         res.json("User added!")
 
-    }catch(err){
+    }catch(error){
         if (error instanceof ClientError) {
             res.status(400)
             res.json({

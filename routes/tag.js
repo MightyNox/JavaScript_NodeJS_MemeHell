@@ -17,9 +17,9 @@ router.get('/', async (req, res) =>{
         res.json({tags : tags})
         return
 
-    }catch(err){
+    }catch(error){
         res.status(400)
-        res.json({message: err.message})
+        res.json({message: error.message})
         return
     }
     
@@ -49,9 +49,9 @@ router.post('/add',
         res.json({message: 'Tag added'})
         return
 
-    }catch(err){
+    }catch(error){
         res.status(400)
-        res.json({message: err.message})
+        res.json({message: error.message})
         return
     }
     
@@ -73,9 +73,9 @@ router.delete('/delete',
         res.json({message: 'Tag deleted'})
         return
 
-    }catch(err){
+    }catch(error){
         res.status(400)
-        res.json({message: err.message})
+        res.json({message: error.message})
         return
     }
     
