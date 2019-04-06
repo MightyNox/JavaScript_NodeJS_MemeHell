@@ -94,7 +94,10 @@ router.post('/login',
         }
 
         if(user.rank === "Guest"){
-            throw new ClientError('This user\'s email isn\'t confirmed!')
+            throw new ClientError(
+                'This user\'s email isn\'t confirmed!', {
+                emailConfirmed : false
+            })
         }
     
         const token = jwt.sign(
@@ -120,7 +123,8 @@ router.post('/login',
         if (error instanceof ClientError) {
             res.status(400)
             res.json({
-                message : error.message
+                message : error.message,
+                data : error.data
             })
         }else{
             res.status(500)
@@ -149,19 +153,20 @@ router.post('/confirm-email',
     
         let encryptedId = encryption.encrypt(String(user._id))
     
-        transporter.sendMail({
-            to: user.email,
-            subject: 'Email Confirmation ✅',
-            html: '<h1>Confirm Email!</h1><br><a href="http://localhost:3000/email-confirmed/'+encryptedId+'">Confirm</a>'
-        }, function(error, info){
-            if (error) {
-                throw Error("Cannot send email!")
-            }
+        try{
+            await transporter.sendMail({
+                to: user.email,
+                subject: 'Email Confirmation ✅',
+                html: '<h1>Confirm Email!</h1><br><a href="http://localhost:3000/email-confirmed/'+encryptedId+'">Confirm</a>'
+            })
 
-            res.status(200)
-            res.json({message: 'Email sent'})
-            return
-        })
+        }catch(error){
+            throw new ClientError("Cannot send email!")
+        }
+
+        res.status(200)
+        res.json({message: 'Email sent'})
+        return
 
     }catch(error){
         if (error instanceof ClientError) {
