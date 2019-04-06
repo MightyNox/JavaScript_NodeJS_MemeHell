@@ -6,7 +6,6 @@ const User = require('mongoose').model('user')
 
 const requireBody = require('../middlewares/requireBody')
 const requireParams = require('../middlewares/requireParams')
-const requireRank = require('../middlewares/requireRank')
 const authCfg = require('../config/auth-cfg')
 const jwtCfg = require('../config/jwt-cfg')
 const ClientError = require('../errors/ClientError')
@@ -93,6 +92,10 @@ router.post('/login',
         if(! await user.authenticate(password)){
            throw new ClientError('Invalid password')
         }
+
+        if(user.rank === "Guest"){
+            throw new ClientError('This user\'s email isn\'t confirmed!')
+        }
     
         const token = jwt.sign(
             { 
@@ -129,20 +132,27 @@ router.post('/login',
 })
 
 router.post('/confirm-email', 
-    [requireRank(['Guest'])],
-    (req, res) =>{
+    [requireBody(['login'])],
+    async (req, res) =>{
 
     try{
-        if(req.session.user.rank != 'Guest'){
-            throw('User\'s email is confirmed')
+        const login = req.body.login
+
+        let user = await User.findOne({'nickname' : login})
+        if(!user){
+            user = await User.findOne({'email' : login})
+        }
+
+        if(user.rank != 'Guest'){
+            throw new ClientError('User\'s email is confirmed')
         }
     
-        let encryptedId = encryption.encrypt(String(req.session.user._id))
+        let encryptedId = encryption.encrypt(String(user._id))
     
         transporter.sendMail({
-            to: req.session.user.email,
+            to: user.email,
             subject: 'Email Confirmation ✅',
-            html: '<h1>Confirm Email!</h1><br><a href="http://localhost:3000/auth/email-confirmed?key='+encryptedId+'">Confirm</a>'
+            html: '<h1>Confirm Email!</h1><br><a href="http://localhost:3000/email-confirmed/'+encryptedId+'">Confirm</a>'
         }, function(error, info){
             if (error) {
                 throw Error("Cannot send email!")
@@ -153,10 +163,18 @@ router.post('/confirm-email',
             return
         })
 
-    }catch(err){
-        res.status(400)
-        res.json({message: err.message})
-        return
+    }catch(error){
+        if (error instanceof ClientError) {
+            res.status(400)
+            res.json({
+                message : error.message
+            })
+        }else{
+            res.status(500)
+            res.json({
+                message : error.message
+            })
+        }
     }
 })
 
@@ -165,16 +183,15 @@ router.get('/email-confirmed',
     async (req, res) =>{
 
     try{
-        let _id = encryption.decrypt(req.query.key)
-    
-        let user = await User.findOne({'_id' : _id})
+        const _id = encryption.decrypt(req.query.key)
+        const user = await User.findOne({'_id' : _id})
 
         if(!user){
-            throw Error('Wrong activation code')
+            throw new ClientError('Wrong activation code')
         }
 
         if(user.rank != 'Guest'){
-            throw Error('This email is confirmed')
+            throw new ClientError('This email is confirmed')
         }
 
         user.rank = 'Member'
@@ -182,12 +199,19 @@ router.get('/email-confirmed',
 
         res.status(200)
         res.json({message: 'Email confirmed'})
-        return
 
-    }catch(err){
-        res.status(400)
-        res.json({message: err.message})
-        return
+    }catch(error){
+        if (error instanceof ClientError) {
+            res.status(400)
+            res.json({
+                message : error.message
+            })
+        }else{
+            res.status(500)
+            res.json({
+                message : error.message
+            })
+        }
     }
 })
 
